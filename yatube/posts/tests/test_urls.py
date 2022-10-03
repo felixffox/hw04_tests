@@ -14,6 +14,7 @@ class StaticURLTests(TestCase):
         response = self.guest_client.get('/')
         self.assertEqual(response.status_code, 200)
 
+
 class PostURLTest(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -86,4 +87,4 @@ class PostURLTest(TestCase):
         for address, template in templates_url_names.items():
             with self.subTest(address=address):
                 response = self.authorized_client.get(address)
-                self.assertTemplateUsed(response,template)
+                self.assertTemplateUsed(response, template)

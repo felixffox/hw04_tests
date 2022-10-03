@@ -1,11 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from posts.models import Group, Post
-from django.conf import settings
 from django.test import Client, TestCase
 from django.urls import reverse
 
 User = get_user_model()
+
 
 class PostCreateForm(TestCase):
     @classmethod
@@ -13,15 +13,15 @@ class PostCreateForm(TestCase):
         super().setUpClass()
         cls.user = User.objects.create(username='Test-user')
         cls.group = Group.objects.create(
-            title = 'Test-title',
-            slug = 'test-slug',
-            description = 'Test-description',
+            title='Test-title',
+            slug='test-slug',
+            description='Test-description',
         )
         cls.post = Post.objects.create(
-            author = cls.user,
-            text = 'Test-text',
-            group = cls.group
-            )
+            author=cls.user,
+            text='Test-text',
+            group=cls.group
+        )
         cls.form = PostCreateForm()
 
     def setUp(self):
@@ -45,7 +45,7 @@ class PostCreateForm(TestCase):
                 'posts:profile', kwargs={'username': self.post.author}
             )
         )
-        self.assertEqual(Post.objects.count(), posts_count+1)
+        self.assertEqual(Post.objects.count(), posts_count + 1)
         self.assertTrue(
             Post.objects.filter(
                 author=self.user.id,

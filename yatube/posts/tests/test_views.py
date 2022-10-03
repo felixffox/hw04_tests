@@ -9,6 +9,7 @@ User = get_user_model()
 
 TESTS_POSTS_NUM = 13
 
+
 class PostViewsTest(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -34,11 +35,20 @@ class PostViewsTest(TestCase):
     def test_pages_uses_correct_template(self):
         templates_pages_names = {
             'posts/index.html': reverse('posts:index'),
-            'posts/group_list.html': reverse('posts:group_list', kwargs={'slug': 'test-slug'}),
-            'posts/profile.html': reverse('posts:profile', kwargs={'username': 'HasNoName'}),
-            'posts/post_detail.html': reverse('posts:post_detail', kwargs={'post_id': '30'}),
-            'posts/create_post.html': reverse('posts:post_create'),
-            'posts/create_post.html': reverse('posts:post_edit', kwargs={'post_id': '30'}),
+            'posts/group_list.html': reverse(
+                'posts:group_list',
+                kwargs={'slug': 'test-slug'}),
+            'posts/profile.html': reverse(
+                'posts:profile',
+                kwargs={'username': 'HasNoName'}),
+            'posts/post_detail.html': reverse(
+                'posts:post_detail',
+                kwargs={'post_id': '30'}),
+            'posts/create_post.html': reverse(
+                'posts:post_create'),
+            'posts/create_post.html': reverse(
+                'posts:post_edit',
+                kwargs={'post_id': '30'}),
         }
         for template, reverse_name in templates_pages_names.items():
             with self.subTest(reverse_name=reverse_name):
@@ -56,7 +66,8 @@ class PostViewsTest(TestCase):
         self.assertEqual(post_group_0, 'Test-group')
 
     def test_group_list_context(self):
-        response = self.authorized_client.get(reverse('posts:group_list', kwargs={'slug': 'test-slug'}))
+        response = self.authorized_client.get(
+            reverse('posts:group_list', kwargs={'slug': 'test-slug'}))
         post_object = response.context['page_obj'][0]
         post_text_0 = post_object.text
         post_author_0 = post_object.author.username
@@ -66,7 +77,8 @@ class PostViewsTest(TestCase):
         self.assertEqual(post_group_0, 'Test-group')
 
     def test_profile_context(self):
-        response = self.authorized_client.get(reverse('posts:profile', kwargs={'username': 'HasNoName'}))
+        response = self.authorized_client.get(
+            reverse('posts:profile', kwargs={'username': 'HasNoName'}))
         post_object = response.context['page_obj'][0]
         post_text_0 = post_object.text
         post_author_0 = post_object.author.username
@@ -76,7 +88,8 @@ class PostViewsTest(TestCase):
         self.assertEqual(post_group_0, 'Test-group')
 
     def test_post_detail_context(self):
-        response = self.authorized_client.get(reverse('posts:post_detail', kwargs={'post_id': '30'}))
+        response = self.authorized_client.get(
+            reverse('posts:post_detail', kwargs={'post_id': '30'}))
         post_object = response.context['post']
         post_text_0 = post_object.text
         post_author_0 = post_object.author.username
@@ -97,7 +110,8 @@ class PostViewsTest(TestCase):
                 self.assertIsInstance(form_field, expected)
 
     def test_post_edit_context(self):
-        response = self.authorized_client.get(reverse('posts:post_edit', kwargs={'post_id': '30'}))
+        response = self.authorized_client.get(
+            reverse('posts:post_edit', kwargs={'post_id': '30'}))
         form_fields = {
             'text': forms.fields.CharField,
             'group': forms.fields.ChoiceField,
@@ -106,6 +120,7 @@ class PostViewsTest(TestCase):
             with self.subTest(value=value):
                 form_field = response.context.get('form').fields.get(value)
                 self.assertIsInstance(form_field, expected)
+
 
 class PaginatorViewsTest(TestCase):
     @classmethod
