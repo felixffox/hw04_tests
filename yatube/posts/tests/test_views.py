@@ -44,7 +44,7 @@ class PostViewsTest(TestCase):
             'posts/post_detail.html': reverse(
                 'posts:post_detail',
                 kwargs={'post_id': '30'}),
-            'posts:post_create' : reverse(
+            'posts:post_create': reverse(
                 'posts/create_post.html'),
             'posts:post_edit': reverse(
                 'posts/create_post.html',
