@@ -44,10 +44,10 @@ class PostViewsTest(TestCase):
             'posts/post_detail.html': reverse(
                 'posts:post_detail',
                 kwargs={'post_id': '30'}),
-            'posts/create_post.html': reverse(
-                'posts:post_create'),
-            'posts/create_post.html': reverse(
-                'posts:post_edit',
+            'posts:post_create' : reverse(
+                'posts/create_post.html'),
+            'posts:post_edit': reverse(
+                'posts/create_post.html',
                 kwargs={'post_id': '30'}),
         }
         for template, reverse_name in templates_pages_names.items():
