@@ -44,16 +44,19 @@ class PostViewsTest(TestCase):
             'posts/post_detail.html': reverse(
                 'posts:post_detail',
                 kwargs={'post_id': '30'}),
-            'posts:post_create': reverse(
-                'posts/create_post.html'),
-            'posts:post_edit': reverse(
-                'posts/create_post.html',
-                kwargs={'post_id': '30'}),
+            'posts/create_post.html': reverse(
+                'posts:post_create'),
         }
         for template, reverse_name in templates_pages_names.items():
             with self.subTest(reverse_name=reverse_name):
                 response = self.authorized_client.get(reverse_name)
                 self.assertTemplateUsed(response, template)
+
+        template = 'posts/create_post.html'
+        reverse_name = reverse('posts:post_edit', kwargs={'post_id': '30'})
+        with self.subTest(reverse_name=reverse_name):
+            response = self.authorized_client.get(reverse_name)
+            self.assertTemplateUsed(response, template)
 
     def test_index_context(self):
         response = self.authorized_client.get(reverse('posts:index'))
