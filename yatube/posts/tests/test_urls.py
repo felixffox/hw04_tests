@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
-from django.urls import reverse
 
 from posts.models import Group, Post
 
@@ -20,7 +19,8 @@ class PostURLTest(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create_user(username='HasNoName')
+        cls.user = User.objects.create_user(username='author')
+        cls.user_2 = User.objects.create_user(username='HasNoName')
         cls.group = Group.objects.create(
             title='Test-group',
             slug='test-slug',
@@ -34,7 +34,7 @@ class PostURLTest(TestCase):
     def setUp(self):
         self.guest_client = Client()
         self.authorized_client = Client()
-        self.authorized_client.force_login(self.user)
+        self.authorized_client.force_login(self.user_2)
         user_author = PostURLTest.user
         self.authorized_client_author = Client()
         self.authorized_client_author.force_login(user_author)
@@ -64,16 +64,31 @@ class PostURLTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_edit_post_url(self):
-        response = self.authorized_client_author.get(f'/posts/{self.post.id}/edit/')
+        response = self.authorized_client_author.get(
+            f'/posts/{self.post.id}/edit/'
+        )
         self.assertEqual(response.status_code, 200)
 
     def test_guest_create_redirect(self):
         response = self.guest_client.get(f'/create/')
         self.assertRedirects(response, '/auth/login/?next=/create/')
 
-#    def test_guest_edit_redirect(self):
-#        response = self.guest_client.get(f'/posts/{self.post.id}/edit')
-#        self.assertRedirects(response, '/auth/login/?next=/create/')
+    def test_guest_edit_redirect(self):
+        response = self.guest_client.get(
+            f'/posts/{self.post.id}/edit/',
+            follow=True
+        )
+        self.assertRedirects(
+            response,
+            f'/auth/login/?next=/posts/{self.post.id}/edit/'
+        )
+
+    def test_authorized_client_not_author_edit_redirect(self):
+        response = self.authorized_client.get(
+            f'/posts/{self.post.id}/edit/',
+            follow=True
+        )
+        self.assertRedirects(response, f'/posts/{self.post.id}/')
 
     def test_urls_uses_correct_template(self):
         templates_url_names = {
@@ -94,5 +109,5 @@ class PostURLTest(TestCase):
         }
         for address, template in templates_url_names.items():
             with self.subTest(address=address):
-                response = self.authorized_client.get(address)
+                response = self.authorized_client_author.get(address)
                 self.assertTemplateUsed(response, template)

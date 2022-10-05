@@ -1,3 +1,4 @@
+from urllib import response
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -15,22 +16,28 @@ class PostViewsTest(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create_user(username='HasNoName')
-        cls.group = Group.objects.create(
+        cls.group_1 = Group.objects.create(
             title='Test-group',
             slug='test-slug',
             description='Test-description',
         )
+        cls.group_2 = Group.objects.create(
+            title='Test-group-2',
+            slug='test-slug-2',
+            description='Test-description-2',
+        )
         cls.post = Post.objects.create(
             author=cls.user,
             text='Test-post',
-            pk='30',
-            group=cls.group
+            group=cls.group_1
         )
 
     def setUp(self):
         self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        self.authorized_author = Client()
+        self.authorized_author.force_login(self.post.author)
 
     def test_pages_uses_correct_template(self):
         templates_pages_names = {
@@ -43,7 +50,7 @@ class PostViewsTest(TestCase):
                 kwargs={'username': 'HasNoName'}),
             'posts/post_detail.html': reverse(
                 'posts:post_detail',
-                kwargs={'post_id': '30'}),
+                kwargs={'post_id': self.post.id}),
             'posts/create_post.html': reverse(
                 'posts:post_create'),
         }
@@ -53,7 +60,10 @@ class PostViewsTest(TestCase):
                 self.assertTemplateUsed(response, template)
 
         template = 'posts/create_post.html'
-        reverse_name = reverse('posts:post_edit', kwargs={'post_id': '30'})
+        reverse_name = reverse(
+            'posts:post_edit',
+            kwargs={'post_id': self.post.id}
+        )
         with self.subTest(reverse_name=reverse_name):
             response = self.authorized_client.get(reverse_name)
             self.assertTemplateUsed(response, template)
@@ -92,7 +102,7 @@ class PostViewsTest(TestCase):
 
     def test_post_detail_context(self):
         response = self.authorized_client.get(
-            reverse('posts:post_detail', kwargs={'post_id': '30'}))
+            reverse('posts:post_detail', kwargs={'post_id': self.post.id}))
         post_object = response.context['post']
         post_text_0 = post_object.text
         post_author_0 = post_object.author.username
@@ -114,7 +124,7 @@ class PostViewsTest(TestCase):
 
     def test_post_edit_context(self):
         response = self.authorized_client.get(
-            reverse('posts:post_edit', kwargs={'post_id': '30'}))
+            reverse('posts:post_edit', kwargs={'post_id': self.post.id}))
         form_fields = {
             'text': forms.fields.CharField,
             'group': forms.fields.ChoiceField,
@@ -123,6 +133,27 @@ class PostViewsTest(TestCase):
             with self.subTest(value=value):
                 form_field = response.context.get('form').fields.get(value)
                 self.assertIsInstance(form_field, expected)
+
+    def test_created_post_on_pages(self):
+        list_urls = (
+            reverse('posts:index'),
+            reverse('posts:group_list', kwargs={'slug': self.group_1.slug}),
+            reverse('posts:profile', kwargs={'username': 'HasNoName'}),
+        )
+        for tested_url in list_urls:
+            response = self.authorized_author.get(tested_url)
+            self.assertEqual(len(response.context['page_obj'].object_list), 1)
+
+    def test_post_no_in_another_group(self):
+        response = self.guest_client.get(
+            reverse('posts:group_list',
+            kwargs={'slug': self.group_2.slug})
+        )
+        posts = response.context['page_obj'].object_list
+        posts_ids = []
+        for post in posts:
+            posts_ids.append(post.id)
+            self.assertIn(post.id, posts_ids)
 
 
 class PaginatorViewsTest(TestCase):
