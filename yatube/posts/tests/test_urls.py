@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
+from django.urls import reverse
 
 from posts.models import Group, Post
 
@@ -28,7 +29,6 @@ class PostURLTest(TestCase):
         cls.post = Post.objects.create(
             author=cls.user,
             text='Test-post',
-            pk='30',
         )
 
     def setUp(self):
@@ -52,7 +52,7 @@ class PostURLTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_post_url(self):
-        response = self.guest_client.get('/posts/30/')
+        response = self.guest_client.get(f'/posts/{self.post.id}/')
         self.assertEqual(response.status_code, 200)
 
     def test_unexisting_url(self):
@@ -64,15 +64,23 @@ class PostURLTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_edit_post_url(self):
-        response = self.authorized_client_author.get('/posts/30/edit/')
+        response = self.authorized_client_author.get(f'/posts/{self.post.id}/edit/')
         self.assertEqual(response.status_code, 200)
+
+    def test_guest_create_redirect(self):
+        response = self.guest_client.get(f'/create/')
+        self.assertRedirects(response, '/auth/login/?next=/create/')
+
+#    def test_guest_edit_redirect(self):
+#        response = self.guest_client.get(f'/posts/{self.post.id}/edit')
+#        self.assertRedirects(response, '/auth/login/?next=/create/')
 
     def test_urls_uses_correct_template(self):
         templates_url_names = {
             '/': 'posts/index.html',
             '/group/test-slug/': 'posts/group_list.html',
             '/profile/HasNoName/': 'posts/profile.html',
-            '/posts/30/': 'posts/post_detail.html',
+            f'/posts/{self.post.id}/': 'posts/post_detail.html',
         }
         for address, template in templates_url_names.items():
             with self.subTest(address=address):
@@ -82,7 +90,7 @@ class PostURLTest(TestCase):
     def test_urls_uses_correct_template_auth(self):
         templates_url_names = {
             '/create/': 'posts/create_post.html',
-            '/posts/30/edit/': 'posts/create_post.html',
+            f'/posts/{self.post.id}/edit/': 'posts/create_post.html',
         }
         for address, template in templates_url_names.items():
             with self.subTest(address=address):

@@ -31,7 +31,6 @@ class PostCreateForm(TestCase):
     def test_create_post(self):
         posts_count = Post.objects.count()
         form_data = {
-            'author': self.user.id,
             'text': 'Test-text',
             'group': self.group.id,
         }
@@ -56,29 +55,27 @@ class PostCreateForm(TestCase):
 
     def test_edit_post(self):
         posts_count = Post.objects.count()
-        if posts_count == 13:
-            old_post = get_object_or_404(Post, id=self.post.pk)
-            another_group = Group.objects.create(
-                title='Test-title-2',
-                slug='test-slug-2'
+        old_post = Post.objects.get(pk=self.post.id)
+        another_group = Group.objects.create(
+            title='Test-title-2',
+            slug='test-slug-2'
+        )
+        form_data = {
+            'text': 'Test-text',
+            'group': another_group.pk,
+        }
+        response = self.author_client.post(
+            reverse('posts:post_edit', args=(self.post.id, )),
+            data=form_data,
+            follow=True
+        )
+        self.assertEqual(Post.objects.count(), posts_count)
+        self.assertRedirects(
+            response, reverse(
+                'posts:post_detail', kwargs={'post_id': self.post.pk}
             )
-            form_data = {
-                'author': self.user.id,
-                'text': 'Test-text',
-                'group': another_group.pk,
-            }
-            response = self.author_client.post(
-                reverse('posts:post_edit', args=('post_id', self.post.id)),
-                data=form_data,
-                follow=True
-            )
-            self.assertEqual(Post.objects.count(), posts_count)
-            self.assertRedirects(
-                response, reverse(
-                    'posts:post_detail', kwargs={'post_id': self.post.pk}
-                )
-            )
-            new_post = get_object_or_404(Post, id=self.post.pk)
-            self.assertEqual(old_post.author, self.post.author)
-            self.assertNotEqual(old_post.text, new_post.text)
-            self.assertNotEqual(new_post.group.pk, self.post.group.pk)
+        )
+        new_post = Post.objects.get(pk=self.post.pk)
+        self.assertEqual(old_post.author, self.post.author)
+        self.assertTrue(new_post.text == form_data['text'])
+        self.assertTrue(new_post.group.pk == form_data['group'])
