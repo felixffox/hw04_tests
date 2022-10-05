@@ -70,7 +70,7 @@ class PostURLTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_guest_create_redirect(self):
-        response = self.guest_client.get(f'/create/')
+        response = self.guest_client.get('/create/')
         self.assertRedirects(response, '/auth/login/?next=/create/')
 
     def test_guest_edit_redirect(self):

@@ -1,4 +1,3 @@
-from urllib import response
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -146,9 +145,7 @@ class PostViewsTest(TestCase):
 
     def test_post_no_in_another_group(self):
         response = self.guest_client.get(
-            reverse('posts:group_list',
-            kwargs={'slug': self.group_2.slug})
-        )
+            reverse('posts:group_list', kwargs={'slug': self.group_2.slug}))
         posts = response.context['page_obj'].object_list
         posts_ids = []
         for post in posts:
