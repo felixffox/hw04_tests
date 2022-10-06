@@ -150,7 +150,7 @@ class PostViewsTest(TestCase):
         posts_ids = []
         for post in posts:
             posts_ids.append(post.id)
-            self.assertIn(post.id, posts_ids)
+            self.assertIn(self.post.id, posts_ids)
 
 
 class PaginatorViewsTest(TestCase):
