@@ -147,10 +147,7 @@ class PostViewsTest(TestCase):
         response = self.guest_client.get(
             reverse('posts:group_list', kwargs={'slug': self.group_2.slug}))
         posts = response.context['page_obj'].object_list
-        posts_ids = []
-        for post in posts:
-            posts_ids.append(post.id)
-            self.assertIn(self.post.id, posts_ids)
+        self.assertNotIn(self.post.pk, posts)
 
 
 class PaginatorViewsTest(TestCase):
